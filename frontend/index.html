@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Mystery Radar</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet/dist/leaflet.css"
+    />
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Mystery Radar</h1>
+
+    <input
+        id="themeInput"
+        placeholder="Street art and hidden cafes"
+    >
+
+    <button onclick="generateMission()">
+        Generate Mission
+    </button>
+
+    <div id="missionBox"></div>
+
+    <div id="map"></div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
+</body>
+
+</html>
