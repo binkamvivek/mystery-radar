@@ -3,141 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto-Vault Geofence</title>
+    <title>Urban Explorer</title>
     <style>
-        :root {
-            --lock-color: #ef4444;
-            --unlock-color: #10b981;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
+
         body {
-            background-color: #030712;
-            color: #f3f4f6;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-        }
-        .vault-container {
-            background-color: #1f2937;
-            width: 360px;
-            height: 640px;
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            padding: 20px;
             box-sizing: border-box;
-            border: 1px solid #374151;
-            transition: border-color 0.5s ease;
         }
-        .status-header {
+
+        .app-container {
+            background-color: #1e293b;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            padding: 30px 20px 20px;
             text-align: center;
         }
-        .security-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--lock-color);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .display-panel {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        /* Lock Animation Container */
-        .lock-core {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid var(--lock-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            transition: all 0.5s ease;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
-        }
-        /* Hidden Vault Panel - Hidden by default */
-        #decrypted-payload {
-            display: none;
-            width: 100%;
-            background: #111827;
-            border-radius: 12px;
-            padding: 15px;
-            border-left: 4px solid var(--unlock-color);
-            box-sizing: border-box;
-            text-align: left;
-        }
-        .data-item {
-            margin: 10px 0;
-            font-family: monospace;
+
+        .header p {
+            margin: 5px 0 0;
             font-size: 0.9rem;
+            opacity: 0.8;
         }
-        .btn-auth {
-            background-color: #374151;
-            color: #ffffff;
-            border: 1px solid #4b5563;
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
+
+        .content {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        /* The Clue Section */
+        .clue-box {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .clue-label {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #3b82f6;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
-        .btn-auth:hover {
-            background-color: #4b5563;
+
+        .clue-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            font-weight: 300;
+            margin-top: 10px;
+        }
+
+        /* Radar Distance Tracker */
+        .radar-container {
+            margin-bottom: 30px;
+        }
+
+        .distance {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #8b5cf6;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .distance-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Unlocked Content (Hidden by default) */
+        #unlocked-content {
+            display: none;
+            text-align: left;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .location-image {
+            width: 100%;
+            height: 150px;
+            background-color: #334155;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .lore-box {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Action Button */
+        .action-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
-    <div id="vault-card" class="vault-container">
-        <div class="status-header">
-            <div id="badge" class="security-badge">VAULT LOCKED</div>
-            <h2 style="margin-top: 10px; font-size: 1.2rem;">LOCATION-BOUND STORAGE</h2>
+    <div class="app-container">
+        <div class="header">
+            <h1>Urban Explorer</h1>
+            <p>Mission 01: The Hidden Cafe</p>
         </div>
-        
-        <div class="display-panel">
-            <div id="lock-icon" class="lock-core">🔒</div>
-            <p id="distance-tracker" style="font-size: 0.9rem; color: #9ca3af; text-align: center; margin: 0 0 20px 0;">
-                Awaiting perimeter metrics...
-            </p>
 
-            <div id="decrypted-payload">
-                <h4 style="margin: 0 0 10px 0; color: var(--unlock-color);">DECRYPTED SECURE KEYS:</h4>
-                <div class="data-item">🔑 Root_Token: <span style="color: #fff;">usr_x9928_mlr</span></div>
-                <div class="data-item">🌐 Secure_IP: <span style="color: #fff;">192.168.42.105</span></div>
-                <div class="data-item">💾 Server_Pass: <span style="color: #fff;">df77#@kL90!m</span></div>
+        <div class="content">
+            
+            <!-- Default Locked State -->
+            <div id="locked-state">
+                <div class="clue-box">
+                    <div class="clue-label">CURRENT CLUE</div>
+                    <div class="clue-text">
+                        "Find the place where the coffee is roasted fresh, hidden behind a canopy of green leaves in the heart of the tech city."
+                    </div>
+                </div>
+
+                <div class="radar-container">
+                    <p class="distance" id="distance-display">--</p>
+                    <p class="distance-label">Distance to Target</p>
+                </div>
+
+                <button class="action-btn" id="start-btn" onclick="startExploration()">START TRACKING</button>
             </div>
-        </div>
 
-        <div>
-            <button class="btn-auth" onclick="initializeVaultLink()">INITIALIZE HARDWARE SCAN</button>
+            <!-- Unlocked State (Hidden until arrival) -->
+            <div id="unlocked-content">
+                <div class="location-image">☕</div>
+                <h2 style="margin: 0 0 10px 0; color: #3b82f6;">Roastery Coffee House</h2>
+                
+                <div class="lore-box">
+                    <strong>Destination Reached!</strong><br><br>
+                    You found it. This spot is famous for its artisanal blends and quiet outdoor seating. <br><br>
+                    <em>Must Try: The Cranberry Coffee.</em>
+                </div>
+
+                <button class="action-btn" onclick="nextMission()">UNLOCK NEXT CLUE</button>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // Set your target safe zone coordinates (Currently set to your campus block)
-        const SAFE_ZONE_LAT = 17.5458; 
-        const SAFE_ZONE_LON = 78.4078; 
-        const UNLOCK_RADIUS_METERS = 20; // 20-meter tight security perimeter
+        // TARGET: Replace these with your desired real-world location to test
+        const TARGET_LAT = 17.4483; 
+        const TARGET_LON = 78.3915; 
+        const UNLOCK_RADIUS = 30; // Within 30 meters to win
 
-        const vaultCard = document.getElementById('vault-card');
-        const badge = document.getElementById('badge');
-        const lockIcon = document.getElementById('lock-icon');
-        const distanceTracker = document.getElementById('distance-tracker');
-        const payload = document.getElementById('decrypted-payload');
+        const distanceDisplay = document.getElementById('distance-display');
+        const startBtn = document.getElementById('start-btn');
+        const lockedState = document.getElementById('locked-state');
+        const unlockedContent = document.getElementById('unlocked-content');
+        const clueBox = document.querySelector('.clue-box');
 
         function haversineDistance(lat1, lon1, lat2, lon2) {
             const R = 6371000;
@@ -148,52 +223,44 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function initializeVaultLink() {
+        function startExploration() {
             if (!navigator.geolocation) {
-                distanceTracker.innerText = "Hardware execution error: GPS missing.";
+                alert("Geolocation is not supported by your browser.");
                 return;
             }
 
-            distanceTracker.innerText = "Querying satellite array coordinates...";
+            startBtn.innerText = "LOCATING SIGNAL...";
+            startBtn.style.opacity = "0.5";
 
             navigator.geolocation.watchPosition(
                 (position) => {
                     const currentLat = position.coords.latitude;
                     const currentLon = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
+                    const distance = haversineDistance(currentLat, currentLon, TARGET_LAT, TARGET_LON);
 
-                    const distance = haversineDistance(currentLat, currentLon, SAFE_ZONE_LAT, SAFE_ZONE_LON);
-
-                    // Update metrics text
-                    distanceTracker.innerHTML = `Perimeter Distance: ${Math.round(distance)}m<br><span style="font-size: 0.75rem; color:#6b7280;">GPS Accuracy: ±${Math.round(accuracy)}m</span>`;
-
-                    // EVALUATE GEOFENCE SECURITY CRITERIA
-                    if (distance <= UNLOCK_RADIUS_METERS) {
-                        // Enter UNLOCKED State
-                        vaultCard.style.borderColor = "var(--unlock-color)";
-                        badge.innerText = "ACCESS GRANTED";
-                        badge.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
-                        badge.style.color = "var(--unlock-color)";
-                        badge.style.borderColor = "rgba(16, 185, 129, 0.2)";
-                        lockIcon.innerText = "🔓";
-                        lockIcon.style.borderColor = "var(--unlock-color)";
-                        lockIcon.style.boxShadow = "0 0 15px rgba(16, 185, 129, 0.2)";
-                        payload.style.display = "block"; // Show the hidden files
+                    // Update UI Distance
+                    if (distance > 1000) {
+                        distanceDisplay.innerText = (distance / 1000).toFixed(1) + "km";
                     } else {
-                        // Enforce LOCKED State
-                        vaultCard.style.borderColor = "#374151";
-                        badge.innerText = "ACCESS DENIED - OUT OF BOUNDS";
-                        badge.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
-                        badge.style.color = "var(--lock-color)";
-                        badge.style.borderColor = "rgba(239, 68, 68, 0.2)";
-                        lockIcon.innerText = "🔒";
-                        lockIcon.style.borderColor = "var(--lock-color)";
-                        lockIcon.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.2)";
-                        payload.style.display = "none"; // Hide the payload completely
+                        distanceDisplay.innerText = Math.round(distance) + "m";
+                    }
+
+                    // CHECK IF ARRIVED!
+                    if (distance <= UNLOCK_RADIUS) {
+                        // Hide Clue and Radar
+                        distanceDisplay.parentElement.style.display = 'none';
+                        startBtn.style.display = 'none';
+                        clueBox.style.display = 'none';
+                        
+                        // Show the Reward!
+                        unlockedContent.style.display = 'block';
+                    } else {
+                        startBtn.innerText = "TRACKING LIVE...";
                     }
                 },
                 (error) => {
-                    distanceTracker.innerText = "Security Halt: Hardware perimeter check rejected.";
+                    startBtn.innerText = "ENABLE GPS TO PLAY";
+                    startBtn.style.background = "#ef4444";
                 },
                 {
                     enableHighAccuracy: true,
@@ -201,6 +268,10 @@
                     timeout: 10000
                 }
             );
+        }
+
+        function nextMission() {
+            alert("Next phase: We will program an array to load the NEXT location and clue!");
         }
     </script>
 </body>
