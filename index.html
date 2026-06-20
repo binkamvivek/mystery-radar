@@ -3,198 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mystery Location Radar</title>
+    <title>Crypto-Vault Geofence</title>
     <style>
+        :root {
+            --lock-color: #ef4444;
+            --unlock-color: #10b981;
+        }
         body {
-            background-color: #050811;
-            color: #ffffff;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: #030712;
+            color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
-        .phone-case {
-            background-color: #0b111e;
+        .vault-container {
+            background-color: #1f2937;
             width: 360px;
             height: 640px;
-            border-radius: 28px;
-            padding: 25px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
-            border: 2px solid #1f2937;
-            text-align: center;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             box-sizing: border-box;
-            position: relative;
+            border: 1px solid #374151;
+            transition: border-color 0.5s ease;
         }
-        h1 {
-            font-size: 1.2rem;
-            letter-spacing: 4px;
-            color: #10b981;
-            margin: 0;
-            text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        .status-header {
+            text-align: center;
         }
-        .radar-screen {
+        .security-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--lock-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .display-panel {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            position: relative;
-            margin: 20px 0;
         }
-        /* 🌀 THE SPINNING RADAR DISK */
-        .radar-dish {
-            width: 220px;
-            height: 220px;
+        /* Lock Animation Container */
+        .lock-core {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            border: 2px solid rgba(16, 185, 129, 0.3);
-            position: relative;
-            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(0,0,0,0) 70%);
+            border: 4px solid var(--lock-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1);
-        }
-        .radar-dish::before {
-            content: '';
-            position: absolute;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 1px dashed rgba(16, 185, 129, 0.2);
-        }
-        /* The sweeping line beam */
-        .sweep {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            background: linear-gradient(45deg, rgba(16, 185, 129, 0.6) 0%, rgba(16, 185, 129, 0) 60%);
-            transform-origin: bottom right;
-            top: 0;
-            left: 0;
-            border-right: 2px solid #10b981;
-            border-radius: 100% 0 0 0;
-            animation: radar-sweep 4s linear infinite;
-            animation-play-state: paused; /* Starts paused until initialized */
-        }
-        @keyframes radar-sweep {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .distance-readout {
             font-size: 2.5rem;
-            font-weight: bold;
-            color: #ffffff;
-            margin-top: 25px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            margin-bottom: 20px;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
         }
-        button {
-            background-color: transparent;
-            color: #10b981;
-            border: 2px solid #10b981;
+        /* Hidden Vault Panel - Hidden by default */
+        #decrypted-payload {
+            display: none;
+            width: 100%;
+            background: #111827;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid var(--unlock-color);
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .data-item {
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .btn-auth {
+            background-color: #374151;
+            color: #ffffff;
+            border: 1px solid #4b5563;
             width: 100%;
             padding: 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
-        button:hover {
-            background-color: #10b981;
-            color: #000;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-        }
-        button:disabled {
-            border-color: #374151;
-            color: #4b5563;
-            cursor: not-allowed;
-            box-shadow: none;
+        .btn-auth:hover {
+            background-color: #4b5563;
         }
     </style>
 </head>
 <body>
 
-    <div class="phone-case">
-        <h1>SYSTEM: ACTIVE_</h1>
+    <div id="vault-card" class="vault-container">
+        <div class="status-header">
+            <div id="badge" class="security-badge">VAULT LOCKED</div>
+            <h2 style="margin-top: 10px; font-size: 1.2rem;">LOCATION-BOUND STORAGE</h2>
+        </div>
         
-        <div class="radar-screen">
-            <div class="radar-dish">
-                <div id="radar-sweep-beam" class="sweep"></div>
+        <div class="display-panel">
+            <div id="lock-icon" class="lock-core">🔒</div>
+            <p id="distance-tracker" style="font-size: 0.9rem; color: #9ca3af; text-align: center; margin: 0 0 20px 0;">
+                Awaiting perimeter metrics...
+            </p>
+
+            <div id="decrypted-payload">
+                <h4 style="margin: 0 0 10px 0; color: var(--unlock-color);">DECRYPTED SECURE KEYS:</h4>
+                <div class="data-item">🔑 Root_Token: <span style="color: #fff;">usr_x9928_mlr</span></div>
+                <div class="data-item">🌐 Secure_IP: <span style="color: #fff;">192.168.42.105</span></div>
+                <div class="data-item">💾 Server_Pass: <span style="color: #fff;">df77#@kL90!m</span></div>
             </div>
-            <div id="distance-display" class="distance-readout">--m</div>
         </div>
 
         <div>
-            <p id="status-text" style="color: #6b7280; font-size: 0.8rem; margin-bottom: 20px; line-height: 1.4;">
-                RADAR OFFLINE.<br>Awaiting satellite link authorization...
-            </p>
-            <button id="radar-btn" onclick="startRadar()">INITIALIZE LINK</button>
+            <button class="btn-auth" onclick="initializeVaultLink()">INITIALIZE HARDWARE SCAN</button>
         </div>
     </div>
 
     <script>
-        const TARGET_LAT = 17.4483; 
-        const TARGET_LON = 78.3915; 
+        // Set your target safe zone coordinates (Currently set to your campus block)
+        const SAFE_ZONE_LAT = 17.5458; 
+        const SAFE_ZONE_LON = 78.4078; 
+        const UNLOCK_RADIUS_METERS = 20; // 20-meter tight security perimeter
 
-        const distanceDisplay = document.getElementById('distance-display');
-        const statusText = document.getElementById('status-text');
-        const radarBtn = document.getElementById('radar-btn');
-        const sweepBeam = document.getElementById('radar-sweep-beam');
+        const vaultCard = document.getElementById('vault-card');
+        const badge = document.getElementById('badge');
+        const lockIcon = document.getElementById('lock-icon');
+        const distanceTracker = document.getElementById('distance-tracker');
+        const payload = document.getElementById('decrypted-payload');
 
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; 
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c; 
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function startRadar() {
+        function initializeVaultLink() {
             if (!navigator.geolocation) {
-                statusText.innerText = "ERROR: GEOLOCATION UNAVAILABLE.";
+                distanceTracker.innerText = "Hardware execution error: GPS missing.";
                 return;
             }
 
-            statusText.innerHTML = "PINGING SATELLITES...<br>Establishing connection handshake.";
-            radarBtn.disabled = true;
+            distanceTracker.innerText = "Querying satellite array coordinates...";
 
             navigator.geolocation.watchPosition(
                 (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
-                    const accuracy = position.coords.accuracy; // Live GPS precision in meters
+                    const currentLat = position.coords.latitude;
+                    const currentLon = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
 
-                    const distanceInMeters = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
+                    const distance = haversineDistance(currentLat, currentLon, SAFE_ZONE_LAT, SAFE_ZONE_LON);
 
-                    // Spin up the radar vector animation
-                    sweepBeam.style.animationPlayState = 'running';
+                    // Update metrics text
+                    distanceTracker.innerHTML = `Perimeter Distance: ${Math.round(distance)}m<br><span style="font-size: 0.75rem; color:#6b7280;">GPS Accuracy: ±${Math.round(accuracy)}m</span>`;
 
-                    if (distanceInMeters > 1000) {
-                        distanceDisplay.innerText = (distanceInMeters / 1000).toFixed(2) + " KM";
+                    // EVALUATE GEOFENCE SECURITY CRITERIA
+                    if (distance <= UNLOCK_RADIUS_METERS) {
+                        // Enter UNLOCKED State
+                        vaultCard.style.borderColor = "var(--unlock-color)";
+                        badge.innerText = "ACCESS GRANTED";
+                        badge.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+                        badge.style.color = "var(--unlock-color)";
+                        badge.style.borderColor = "rgba(16, 185, 129, 0.2)";
+                        lockIcon.innerText = "🔓";
+                        lockIcon.style.borderColor = "var(--unlock-color)";
+                        lockIcon.style.boxShadow = "0 0 15px rgba(16, 185, 129, 0.2)";
+                        payload.style.display = "block"; // Show the hidden files
                     } else {
-                        distanceDisplay.innerText = Math.round(distanceInMeters) + " M";
+                        // Enforce LOCKED State
+                        vaultCard.style.borderColor = "#374151";
+                        badge.innerText = "ACCESS DENIED - OUT OF BOUNDS";
+                        badge.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+                        badge.style.color = "var(--lock-color)";
+                        badge.style.borderColor = "rgba(239, 68, 68, 0.2)";
+                        lockIcon.innerText = "🔒";
+                        lockIcon.style.borderColor = "var(--lock-color)";
+                        lockIcon.style.boxShadow = "0 0 15px rgba(239, 68, 68, 0.2)";
+                        payload.style.display = "none"; // Hide the payload completely
                     }
-
-                    // Update sub-text with live hardware metadata
-                    statusText.innerHTML = `TARGET LOCKED.<br>Signal Precision: ±${Math.round(accuracy)} meters.`;
-                    statusText.style.color = "#10b981";
                 },
                 (error) => {
-                    statusText.innerHTML = "ACCESS DENIED.<br>Enable location permissions.";
-                    statusText.style.color = "#ef4444";
-                    radarBtn.disabled = false;
-                    sweepBeam.style.animationPlayState = 'paused';
+                    distanceTracker.innerText = "Security Halt: Hardware perimeter check rejected.";
                 },
                 {
                     enableHighAccuracy: true,
