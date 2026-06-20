@@ -1,26 +1,50 @@
 body{
-    background:#111;
-    color:white;
-    font-family:Arial;
     margin:0;
+    background:#050505;
+    color:white;
+    font-family:Arial, sans-serif;
 }
 
 .container{
     width:90%;
+    max-width:800px;
     margin:auto;
     padding:20px;
 }
 
+h1{
+    text-align:center;
+    letter-spacing:4px;
+}
+
+.subtitle{
+    text-align:center;
+    opacity:.7;
+}
+
 input{
     width:100%;
-    padding:12px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
     margin-top:10px;
+    font-size:16px;
 }
 
 button{
-    padding:12px;
-    margin-top:10px;
+    width:100%;
+    padding:14px;
+    margin-top:12px;
+    border:none;
+    border-radius:10px;
     cursor:pointer;
+    font-size:16px;
+}
+
+#loading{
+    margin-top:20px;
+    text-align:center;
+    opacity:.8;
 }
 
 #missionBox{
@@ -30,5 +54,26 @@ button{
 #map{
     height:500px;
     margin-top:20px;
-    border-radius:12px;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+.revealCard{
+    margin-top:20px;
+    padding:20px;
+    background:#111;
+    border-radius:15px;
+    animation:slideUp .5s ease;
+}
+
+@keyframes slideUp{
+    from{
+        transform:translateY(50px);
+        opacity:0;
+    }
+
+    to{
+        transform:translateY(0);
+        opacity:1;
+    }
 }

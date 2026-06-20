@@ -1,54 +1,114 @@
 let map;
+let targetLat;
+let targetLng;
 
 function generateMission(){
 
-    document.getElementById("missionBox").innerHTML = `
-        <h2>Mission 1</h2>
-        <p>Checking your location...</p>
-    `;
+    const loading =
+        document.getElementById("loading");
 
-    navigator.geolocation.getCurrentPosition(
-        showMap,
-        showError
+    loading.innerHTML =
+        "📡 Plotting unmapped coordinates...";
+
+    setTimeout(() => {
+
+        navigator.geolocation.getCurrentPosition(
+            startMission,
+            showError
+        );
+
+    },1500);
+}
+
+function startMission(position){
+
+    document.getElementById(
+        "loading"
+    ).innerHTML = "";
+
+    const lat =
+        position.coords.latitude;
+
+    const lng =
+        position.coords.longitude;
+
+    targetLat =
+        lat + 0.002;
+
+    targetLng =
+        lng + 0.002;
+
+    createMap(
+        lat,
+        lng
+    );
+
+    updateMission(
+        lat,
+        lng
     );
 }
 
-function showMap(position){
-
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
+function createMap(
+    lat,
+    lng
+){
 
     if(map){
         map.remove();
     }
 
-    map = L.map('map').setView(
-        [lat, lng],
-        15
-    );
+    map =
+        L.map('map')
+        .setView(
+            [lat,lng],
+            15
+        );
 
     L.tileLayer(
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
-            attribution:'OpenStreetMap'
+            attribution:
+            'OpenStreetMap'
         }
     ).addTo(map);
 
-    L.marker([lat,lng])
-        .addTo(map)
-        .bindPopup("You are here")
-        .openPopup();
+    L.circle(
+        [targetLat,targetLng],
+        {
+            radius:100,
+            color:'cyan',
+            fillOpacity:0.2
+        }
+    ).addTo(map);
 
-    createHiddenTarget(lat,lng);
+    L.marker(
+        [lat,lng]
+    ).addTo(map);
+
+    navigator.geolocation.watchPosition(
+        watchUser
+    );
 }
 
-function createHiddenTarget(lat,lng){
+function watchUser(position){
 
-    const targetLat =
-        lat + 0.002;
+    const lat =
+        position.coords.latitude;
 
-    const targetLng =
-        lng + 0.002;
+    const lng =
+        position.coords.longitude;
+
+    updateMission(
+        lat,
+        lng
+    );
+}
+
+function updateMission(
+    lat,
+    lng
+){
 
     const distance =
         calculateDistance(
@@ -58,20 +118,68 @@ function createHiddenTarget(lat,lng){
             targetLng
         );
 
+    if(distance <= 100){
+
+        unlockMission();
+
+        return;
+    }
+
     document.getElementById(
         "missionBox"
     ).innerHTML = `
-        <h2>Mission 1</h2>
-
-        <p>
-        Hidden destination generated.
-        </p>
+        <h2>Mission Active</h2>
 
         <p>
         Distance:
         ${distance.toFixed(0)}
         meters
         </p>
+
+        <p>
+        Move closer to the signal.
+        </p>
+    `;
+}
+
+function unlockMission(){
+
+    if(
+        navigator.vibrate
+    ){
+        navigator.vibrate(
+            [200,100,200]
+        );
+    }
+
+    document.getElementById(
+        "missionBox"
+    ).innerHTML = `
+        <div class="revealCard">
+
+            <h2>
+            🔓 Vault Unlocked
+            </h2>
+
+            <h3>
+            Hidden Street Gallery
+            </h3>
+
+            <p>
+            The walls around this
+            area hide some of the
+            city's most overlooked
+            artwork.
+            </p>
+
+            <p>
+            The AI selected this
+            waypoint because it
+            matched your explorer
+            vibe.
+            </p>
+
+        </div>
     `;
 }
 
@@ -119,6 +227,7 @@ function calculateDistance(
 }
 
 function showError(){
+
     alert(
         "Location access denied"
     );

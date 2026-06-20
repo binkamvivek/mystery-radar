@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Mystery Radar</title>
 
@@ -11,23 +13,28 @@
         rel="stylesheet"
         href="https://unpkg.com/leaflet/dist/leaflet.css"
     />
-
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>Mystery Radar</h1>
+    <h1>MYSTERY RADAR</h1>
+
+    <p class="subtitle">
+        Discover places by unlocking them.
+    </p>
 
     <input
         id="themeInput"
-        placeholder="Street art and hidden cafes"
+        placeholder="Hidden cafes and street art..."
     >
 
     <button onclick="generateMission()">
         Generate Mission
     </button>
+
+    <div id="loading"></div>
 
     <div id="missionBox"></div>
 
