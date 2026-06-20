@@ -6,27 +6,37 @@
     <title>Mystery Location Radar</title>
     <style>
         body {
-            background-color: #090d16;
+            background-color: #050811;
             color: #ffffff;
-            font-family: sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
         .phone-case {
-            background-color: #111827;
-            width: 350px;
-            height: 600px;
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            background-color: #0b111e;
+            width: 360px;
+            height: 640px;
+            border-radius: 28px;
+            padding: 25px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+            border: 2px solid #1f2937;
             text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             box-sizing: border-box;
+            position: relative;
+        }
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            color: #10b981;
+            margin: 0;
+            text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
         }
         .radar-screen {
             flex-grow: 1;
@@ -34,101 +44,160 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
+            margin: 20px 0;
+        }
+        /* 🌀 THE SPINNING RADAR DISK */
+        .radar-dish {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            position: relative;
+            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(0,0,0,0) 70%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.1);
+        }
+        .radar-dish::before {
+            content: '';
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 1px dashed rgba(16, 185, 129, 0.2);
+        }
+        /* The sweeping line beam */
+        .sweep {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background: linear-gradient(45deg, rgba(16, 185, 129, 0.6) 0%, rgba(16, 185, 129, 0) 60%);
+            transform-origin: bottom right;
+            top: 0;
+            left: 0;
+            border-right: 2px solid #10b981;
+            border-radius: 100% 0 0 0;
+            animation: radar-sweep 4s linear infinite;
+            animation-play-state: paused; /* Starts paused until initialized */
+        }
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .distance-readout {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            margin-top: 25px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
         button {
+            background-color: transparent;
+            color: #10b981;
+            border: 2px solid #10b981;
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+        button:hover {
             background-color: #10b981;
             color: #000;
-            border: none;
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
         }
         button:disabled {
-            background-color: #4b5563;
-            color: #9ca3af;
+            border-color: #374151;
+            color: #4b5563;
             cursor: not-allowed;
+            box-shadow: none;
         }
     </style>
 </head>
 <body>
 
     <div class="phone-case">
-        <h1>WAYPOINT ALPHA</h1>
+        <h1>SYSTEM: ACTIVE_</h1>
         
         <div class="radar-screen">
-            <div id="distance-display" style="font-size: 3rem; font-weight: bold; margin: 20px 0;">
-                --m
+            <div class="radar-dish">
+                <div id="radar-sweep-beam" class="sweep"></div>
             </div>
+            <div id="distance-display" class="distance-readout">--m</div>
         </div>
 
         <div>
-            <p id="status-text" style="color: #9ca3af; margin-bottom: 20px;">Radar Offline. Initialize link to begin tracking target.</p>
-            <button id="radar-btn" onclick="startRadar()">Initialize Radar</button>
+            <p id="status-text" style="color: #6b7280; font-size: 0.8rem; margin-bottom: 20px; line-height: 1.4;">
+                RADAR OFFLINE.<br>Awaiting satellite link authorization...
+            </p>
+            <button id="radar-btn" onclick="startRadar()">INITIALIZE LINK</button>
         </div>
     </div>
 
     <script>
-        // 🎯 THE TARGET COORDINATES 
-        // Right now, these point to a spot in Hyderabad. You can change these to your college courtyard or home later!
         const TARGET_LAT = 17.4483; 
         const TARGET_LON = 78.3915; 
 
         const distanceDisplay = document.getElementById('distance-display');
         const statusText = document.getElementById('status-text');
         const radarBtn = document.getElementById('radar-btn');
+        const sweepBeam = document.getElementById('radar-sweep-beam');
 
-        // Haversine Formula: Calculates the straight-line distance over the Earth's surface between two GPS coordinates
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Radius of the earth in meters
+            const R = 6371000; 
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
                 Math.sin(dLat/2) * Math.sin(dLat/2) +
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const distance = R * c; // Distance in meters
-            return distance;
+            return R * c; 
         }
 
         function startRadar() {
             if (!navigator.geolocation) {
-                statusText.innerText = "Error: Geolocation is not supported by your browser.";
+                statusText.innerText = "ERROR: GEOLOCATION UNAVAILABLE.";
                 return;
             }
 
-            statusText.innerText = "Connecting to satellite array...";
+            statusText.innerHTML = "PINGING SATELLITES...<br>Establishing connection handshake.";
             radarBtn.disabled = true;
 
-            // watchPosition triggers automatically every time the phone physically moves an inch
             navigator.geolocation.watchPosition(
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLon = position.coords.longitude;
+                    const accuracy = position.coords.accuracy; // Live GPS precision in meters
 
-                    // Calculate how far away the user is from Waypoint Alpha
                     const distanceInMeters = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
 
-                    // Update UI display
+                    // Spin up the radar vector animation
+                    sweepBeam.style.animationPlayState = 'running';
+
                     if (distanceInMeters > 1000) {
-                        distanceDisplay.innerText = (distanceInMeters / 1000).toFixed(2) + " km";
+                        distanceDisplay.innerText = (distanceInMeters / 1000).toFixed(2) + " KM";
                     } else {
-                        distanceDisplay.innerText = Math.round(distanceInMeters) + " m";
+                        distanceDisplay.innerText = Math.round(distanceInMeters) + " M";
                     }
 
-                    statusText.innerText = "Target Locked. Tracking live updates...";
+                    // Update sub-text with live hardware metadata
+                    statusText.innerHTML = `TARGET LOCKED.<br>Signal Precision: ±${Math.round(accuracy)} meters.`;
                     statusText.style.color = "#10b981";
                 },
                 (error) => {
-                    statusText.innerText = "Access Denied. Please enable GPS permissions.";
+                    statusText.innerHTML = "ACCESS DENIED.<br>Enable location permissions.";
                     statusText.style.color = "#ef4444";
                     radarBtn.disabled = false;
+                    sweepBeam.style.animationPlayState = 'paused';
                 },
                 {
-                    enableHighAccuracy: true, // Forces phone to use physical GPS hardware instead of coarse Wi-Fi location
+                    enableHighAccuracy: true,
                     maximumAge: 0,
                     timeout: 10000
                 }
