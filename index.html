@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mystery Location Radar</title>
     <style>
-        /* This is the CSS - It styles our website to look like a premium app */
         body {
             background-color: #090d16;
             color: #ffffff;
@@ -27,6 +26,31 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-sizing: border-box;
+        }
+        .radar-screen {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        button {
+            background-color: #10b981;
+            color: #000;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:disabled {
+            background-color: #4b5563;
+            color: #9ca3af;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -35,17 +59,81 @@
     <div class="phone-case">
         <h1>WAYPOINT ALPHA</h1>
         
-        <div style="font-size: 3rem; font-weight: bold; margin: 40px 0;">
-            --m
+        <div class="radar-screen">
+            <div id="distance-display" style="font-size: 3rem; font-weight: bold; margin: 20px 0;">
+                --m
+            </div>
         </div>
 
         <div>
-            <p style="color: #9ca3af; margin-bottom: 20px;">Radar Offline. Initialize link to begin tracking target.</p>
-            <button style="background-color: #10b981; color: #000; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer;">
-                Initialize Radar
-            </button>
+            <p id="status-text" style="color: #9ca3af; margin-bottom: 20px;">Radar Offline. Initialize link to begin tracking target.</p>
+            <button id="radar-btn" onclick="startRadar()">Initialize Radar</button>
         </div>
     </div>
 
+    <script>
+        // 🎯 THE TARGET COORDINATES 
+        // Right now, these point to a spot in Hyderabad. You can change these to your college courtyard or home later!
+        const TARGET_LAT = 17.4483; 
+        const TARGET_LON = 78.3915; 
+
+        const distanceDisplay = document.getElementById('distance-display');
+        const statusText = document.getElementById('status-text');
+        const radarBtn = document.getElementById('radar-btn');
+
+        // Haversine Formula: Calculates the straight-line distance over the Earth's surface between two GPS coordinates
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius of the earth in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // Distance in meters
+            return distance;
+        }
+
+        function startRadar() {
+            if (!navigator.geolocation) {
+                statusText.innerText = "Error: Geolocation is not supported by your browser.";
+                return;
+            }
+
+            statusText.innerText = "Connecting to satellite array...";
+            radarBtn.disabled = true;
+
+            // watchPosition triggers automatically every time the phone physically moves an inch
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    // Calculate how far away the user is from Waypoint Alpha
+                    const distanceInMeters = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
+
+                    // Update UI display
+                    if (distanceInMeters > 1000) {
+                        distanceDisplay.innerText = (distanceInMeters / 1000).toFixed(2) + " km";
+                    } else {
+                        distanceDisplay.innerText = Math.round(distanceInMeters) + " m";
+                    }
+
+                    statusText.innerText = "Target Locked. Tracking live updates...";
+                    statusText.style.color = "#10b981";
+                },
+                (error) => {
+                    statusText.innerText = "Access Denied. Please enable GPS permissions.";
+                    statusText.style.color = "#ef4444";
+                    radarBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true, // Forces phone to use physical GPS hardware instead of coarse Wi-Fi location
+                    maximumAge: 0,
+                    timeout: 10000
+                }
+            );
+        }
+    </script>
 </body>
 </html>
