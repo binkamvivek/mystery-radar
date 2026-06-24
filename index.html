@@ -117,14 +117,23 @@
                         class="w-full h-24 bg-slate-950 border border-slate-800 focus:border-violet-500/80 rounded-2xl p-4 text-xs text-slate-200 placeholder-slate-600 outline-none transition duration-300 resize-none focus:ring-1 focus:ring-violet-500/20"></textarea>
                 </div>
 
+                <!-- ================= STREAMING_CHUNK: Integrating interactive custom radius inputs... ================= -->
                 <!-- Distance Radius Filter Toggles -->
                 <div>
                     <label class="block text-[10px] font-bold tracking-widest text-violet-400 uppercase mb-2">Maximum Distance Radius</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button type="button" onclick="selectRadius(500)" id="rad-500" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">500m</button>
-                        <button type="button" onclick="selectRadius(1000)" id="rad-1000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200">1km</button>
-                        <button type="button" onclick="selectRadius(3000)" id="rad-3000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">3km</button>
-                        <button type="button" onclick="selectRadius(5000)" id="rad-5000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">5km</button>
+                    <div class="grid grid-cols-4 gap-2 mb-2">
+                        <button type="button" onclick="selectRadius(500)" id="rad-500" class="radius-btn py-2.5 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">500m</button>
+                        <button type="button" onclick="selectRadius(1000)" id="rad-1000" class="radius-btn py-2.5 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200">1km</button>
+                        <button type="button" onclick="selectRadius(3000)" id="rad-3000" class="radius-btn py-2.5 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">3km</button>
+                        <button type="button" onclick="selectRadius(5000)" id="rad-5000" class="radius-btn py-2.5 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">5km</button>
+                    </div>
+                    <!-- Custom Range Input Field -->
+                    <div class="relative flex items-center bg-slate-950 border border-slate-800/80 rounded-2xl p-3 focus-within:border-violet-500/60 transition duration-300">
+                        <span class="text-[10px] font-bold tracking-wider text-slate-500 uppercase mr-2">Or enter distance:</span>
+                        <input type="number" id="custom-radius-input" placeholder="e.g. 2500" value="1000" min="100" max="100000" 
+                            oninput="handleCustomRadiusInput(this.value)"
+                            class="bg-transparent text-slate-200 text-xs font-bold w-full outline-none text-right pr-1 focus:text-violet-400">
+                        <span class="text-xs text-violet-400 font-bold">meters</span>
                     </div>
                 </div>
             </div>
@@ -361,20 +370,56 @@
             }
         }
 
-        // ================= STREAMING_CHUNK: Managing radius selectors and interface configurations... =================
-        // Select custom radius setting
+        // ================= STREAMING_CHUNK: Syncing preset buttons with custom inputs... =================
+        // Select preset radius setting
         function selectRadius(radiusMeters) {
             selectedRadius = radiusMeters;
             
+            // Populating the custom radius text field for clear sync
+            document.getElementById('custom-radius-input').value = radiusMeters;
+            
             // Highlight matching button state
             document.querySelectorAll('.radius-btn').forEach(btn => {
-                btn.className = "radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200";
+                btn.className = "radius-btn py-2.5 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200";
             });
             
             const activeBtn = document.getElementById(`rad-${radiusMeters}`);
             if (activeBtn) {
-                activeBtn.className = "radius-btn py-2 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200";
+                activeBtn.className = "radius-btn py-2.5 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200";
             }
+        }
+
+        // Handle user entering a custom distance in the input field
+        function handleCustomRadiusInput(value) {
+            const parsed = parseInt(value, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                selectedRadius = parsed;
+                // Deselect all preset buttons
+                document.querySelectorAll('.radius-btn').forEach(btn => {
+                    btn.className = "radius-btn py-2.5 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200";
+                });
+            }
+        }
+
+        // ================= STREAMING_CHUNK: Enforcing robust coordinate vector clamping to obey user limits... =================
+        // Safe programmatic clamping algorithm to guarantee destination strictly respects the radius boundaries
+        function clampCoordinateToRadius(startLat, startLon, targetLat, targetLon, maxRadiusMeters) {
+            const currentDist = calculateHaversineDistance(startLat, startLon, targetLat, targetLon);
+            
+            // If the spot is already within bounds, keep its original coordinate
+            if (currentDist <= maxRadiusMeters) {
+                return { lat: targetLat, lon: targetLon };
+            }
+            
+            // If the spot is further, dynamically scale it along the direction vector to be exactly at 90% of the max bounds
+            const scaleFactor = (maxRadiusMeters * 0.9) / currentDist;
+            
+            // LERP approximation (accurate enough for short local distances)
+            const clampedLat = startLat + (targetLat - startLat) * scaleFactor;
+            const clampedLon = startLon + (targetLon - startLon) * scaleFactor;
+            
+            console.log(`Failsafe scaling triggered: Clamped coordinate from ${Math.round(currentDist)}m down to ${Math.round(maxRadiusMeters * 0.9)}m`);
+            return { lat: clampedLat, lon: clampedLon };
         }
 
         // Navigation Controllers
@@ -403,7 +448,6 @@
             }, 100);
         }
 
-        // ================= STREAMING_CHUNK: Integrating Gemini API with Google Search grounding... =================
         // Fetch Curated Dynamic Spot via Gemini 3.1 Flash with Search Grounding
         async function fetchAICuratedTarget(lat, lon, userMood, radius) {
             const apiKey = ""; // Left empty as Canvas runtime injects credentials automatically
@@ -415,7 +459,9 @@
                 The user wants a dynamic local destination that perfectly matches this mood/journal entry: "${userMood}".
                 The user's starting location coordinates are: Latitude: ${lat}, Longitude: ${lon}.
                 You MUST identify a real-world venue, café, or historical monument matching this vibe.
-                Calculate or look up the highly accurate latitude and longitude coordinate vectors of this venue. The venue coordinate MUST be realistically within ${radius} meters of ${lat}, ${lon} (if no real venues are found within that exact range in their actual city, find the closest possible venue within that city and scale its coordinates to be roughly ${radius * 0.8}m away so they can walk to it).
+                Calculate or look up the highly accurate latitude and longitude coordinate vectors of this venue. 
+                CRITICAL LIMIT: The coordinate MUST fall strictly within ${radius} meters of the starting location ${lat}, ${lon}. 
+                If the real coordinates of the closest venue exceed this ${radius}m boundary, you MUST mathematically scale its coordinates down along the vector line towards the starting point so that the calculated Haversine distance from the starting location is strictly less than ${radius} meters. Never return coordinates further than ${radius} meters.
                 
                 You MUST return a JSON object with:
                 - title: Name of the curated hidden spot.
@@ -540,6 +586,13 @@
             }
 
             window.simulatedAngle = null; // Reset simulator approach vector
+
+            // GUARANTEE STRICT MAXIMUM BOUNDS CLAMPING
+            if (activeTarget) {
+                const checkedCoords = clampCoordinateToRadius(startLat, startLon, activeTarget.lat, activeTarget.lon, selectedRadius);
+                activeTarget.lat = checkedCoords.lat;
+                activeTarget.lon = checkedCoords.lon;
+            }
 
             // Set Clue Riddle & reset display outputs
             document.getElementById('clue-text').innerText = `"${activeTarget.clue}"`;
