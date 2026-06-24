@@ -76,71 +76,67 @@
     <header class="w-full max-w-md text-center py-4 mb-2">
         <div class="inline-flex items-center gap-2 bg-slate-900/80 border border-slate-800 px-4 py-1.5 rounded-full backdrop-blur">
             <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-            <span class="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400">SEEKER ENGINE V2.0</span>
+            <span class="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400">SEEKER AI COGNITIVE V3.0</span>
         </div>
     </header>
 
     <!-- Main Game Container -->
     <main class="w-full max-w-md bg-[#131926]/90 border border-slate-800/80 rounded-[32px] p-6 md:p-8 flex-grow flex flex-col justify-between relative overflow-hidden glow-violet backdrop-blur-md">
         
-        <!-- ================= PAGE 1: MOOD SELECTION ================= -->
+        <!-- ================= STREAMING_CHUNK: Injecting AI loading overlay structure... ================= -->
+        <!-- Dynamic AI Curator Loader -->
+        <div id="ai-curating-loader" class="hidden absolute inset-0 bg-[#0b0f19]/95 z-[500] flex flex-col items-center justify-center p-8 text-center space-y-6 page-fade">
+            <div class="relative w-20 h-20">
+                <div class="absolute inset-0 rounded-full border-4 border-violet-500/10 border-t-violet-500 animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-4 border-emerald-500/10 border-b-emerald-500 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <div class="absolute inset-4 rounded-full bg-slate-900 flex items-center justify-center text-xl animate-pulse">🛰️</div>
+            </div>
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-violet-400 uppercase tracking-[0.2em] animate-pulse">AI CURATOR IS SEEKING VENUES...</h3>
+                <p class="text-[11px] text-slate-400 max-w-xs leading-relaxed">
+                    Executing dynamic search queries across live local maps to pinpoint the absolute best 5★ sensory escape matching your exact heart...
+                </p>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 1: MOOD SELECTION & SEARCH CRITERIA ================= -->
         <div id="page-mood" class="page-fade space-y-6 flex-grow flex flex-col justify-between">
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
                     How is your heart today?
                 </h1>
-                <p class="text-slate-400 mt-2 text-sm">Select your vibe. We'll match you to a premium, curated 5-star experience hidden nearby. You have to hunt to unlock the name.</p>
+                <p class="text-slate-400 mt-2 text-xs">Share how your day went. We will utilize real-time AI maps to construct a cryptic satellite hunt to unlock a premium local experience.</p>
             </div>
 
-            <!-- Mood Buttons Grid -->
-            <div class="grid grid-cols-1 gap-3 my-6">
-                <button onclick="selectMood('romantic')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
-                    <div class="flex items-center gap-4">
-                        <span class="text-2xl group-hover:scale-110 transition duration-300">🍷</span>
-                        <div>
-                            <h3 class="font-bold text-slate-200">Aesthetic & Quiet</h3>
-                            <p class="text-xs text-slate-400">Picturesque views, low lights, intimate vibes</p>
-                        </div>
-                    </div>
-                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
-                </button>
+            <!-- Dynamic Interactive Diary Form -->
+            <div class="space-y-4 my-2">
+                <!-- Mood input prompt -->
+                <div>
+                    <label class="block text-[10px] font-bold tracking-widest text-violet-400 uppercase mb-2">Vibe Journal / Heart's Desire</label>
+                    <textarea id="user-mood-input" placeholder="e.g., I had a very stressful day at the computer, I'm feeling exhausted and want a peaceful hidden garden café with soft outdoor lighting to decompress..." 
+                        class="w-full h-24 bg-slate-950 border border-slate-800 focus:border-violet-500/80 rounded-2xl p-4 text-xs text-slate-200 placeholder-slate-600 outline-none transition duration-300 resize-none focus:ring-1 focus:ring-violet-500/20"></textarea>
+                </div>
 
-                <button onclick="selectMood('caffeine')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
-                    <div class="flex items-center gap-4">
-                        <span class="text-2xl group-hover:scale-110 transition duration-300">☕</span>
-                        <div>
-                            <h3 class="font-bold text-slate-200">Espresso & Sanctuary</h3>
-                            <p class="text-xs text-slate-400">Artisanal roasts, greenery, cozy outdoor nooks</p>
-                        </div>
+                <!-- Distance Radius Filter Toggles -->
+                <div>
+                    <label class="block text-[10px] font-bold tracking-widest text-violet-400 uppercase mb-2">Maximum Distance Radius</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="selectRadius(500)" id="rad-500" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">500m</button>
+                        <button type="button" onclick="selectRadius(1000)" id="rad-1000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200">1km</button>
+                        <button type="button" onclick="selectRadius(3000)" id="rad-3000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">3km</button>
+                        <button type="button" onclick="selectRadius(5000)" id="rad-5000" class="radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200">5km</button>
                     </div>
-                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
-                </button>
-
-                <button onclick="selectMood('adventure')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-500/50 rounded-2xl transition duration-300 text-left group">
-                    <div class="flex items-center gap-4">
-                        <span class="text-2xl group-hover:scale-110 transition duration-300">🏰</span>
-                        <div>
-                            <h3 class="font-bold text-slate-200">Historic Majesty</h3>
-                            <p class="text-xs text-slate-400">Ancient architectures, heights, echo chambers</p>
-                        </div>
-                    </div>
-                    <span class="text-emerald-400 group-hover:translate-x-1 transition duration-300">→</span>
-                </button>
-
-                <button onclick="selectMood('midnight')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
-                    <div class="flex items-center gap-4">
-                        <span class="text-2xl group-hover:scale-110 transition duration-300">🌙</span>
-                        <div>
-                            <h3 class="font-bold text-slate-200">Midnight Street Energy</h3>
-                            <p class="text-xs text-slate-400">Late night crowds, buzzing food courts, street eats</p>
-                        </div>
-                    </div>
-                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
-                </button>
+                </div>
             </div>
 
-            <div class="text-center text-[10px] text-slate-500 uppercase tracking-widest">
-                Curating top-tier 5★ spots in Hyderabad
+            <!-- Launcher Action Block -->
+            <div class="space-y-4">
+                <button onclick="generateDynamicSensoryMission()" class="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500 text-white font-bold py-4 px-6 rounded-2xl text-xs tracking-wider transition duration-300 shadow-lg hover:shadow-violet-500/10 transform active:scale-[0.98] flex items-center justify-center gap-2">
+                    ⚡ INITIALIZE COGNITIVE SEEKER PORTAL
+                </button>
+                <div class="text-center text-[10px] text-slate-500 uppercase tracking-widest">
+                    Harnessing Google Grounded AI telemetry
+                </div>
             </div>
         </div>
 
@@ -299,7 +295,7 @@
             adventure: {
                 title: "The Whispering Gallery",
                 type: "Acoustic Monument Wonder",
-                clue: "Scale the winding granite sentry path to find the ancient acoustic dome, where a single soft whisper at one wall travels instantly to the opposite arch.",
+                clue: "Scale the granite fortress sentry path to find the ancient acoustic dome, where a single soft whisper at one wall travels instantly to the opposite arch.",
                 lat: 17.3824,
                 lon: 78.4011,
                 address: "Golconda Fort, Hyderabad",
@@ -309,11 +305,11 @@
             midnight: {
                 title: "DLF Street Food Arcade",
                 type: "Gachibowli Midnight Boulevard",
-                clue: "Follow the neon signs of sizzling woks and boiling kettles that never rest, keeping the local techies awake with steam and spices.",
+                clue: "Follow the neon signs of sizzling woks and boiling kettles that never rest, keeping local night owls awake with steam and spices.",
                 lat: 17.4478,
                 lon: 78.3752,
                 address: "Opposite DLF Cyber City, Gachibowli, Hyderabad",
-                lore: "The legendary, open-air midnight street culinary alley of Hyderabad. Gathering computer scientists, programmers, and travelers under glowing lights until the early morning hours.",
+                lore: "The legendary, open-air midnight street culinary alley of Hyderabad. Gathering tech-professionals, students, and travelers under glowing lights until the early morning hours.",
                 menu: "The legendary AM-PM Maggi, Butter-roasted Paneer Dosa, and thick hot cutting Chai."
             }
         };
@@ -324,7 +320,8 @@
         let watchId = null;
         let isSimulating = false;
         let simulatedDistance = 0;
-        let localAdapterApplied = false; // Tracks if the coordinates have been dynamically adapted to local neighborhood
+        let localAdapterApplied = false; // Tracks if coordinates adapted dynamically
+        let selectedRadius = 1000;       // Selected max radius limit in meters
 
         // Leaflet Map State Variables
         let map = null;
@@ -364,9 +361,24 @@
             }
         }
 
+        // ================= STREAMING_CHUNK: Managing radius selectors and interface configurations... =================
+        // Select custom radius setting
+        function selectRadius(radiusMeters) {
+            selectedRadius = radiusMeters;
+            
+            // Highlight matching button state
+            document.querySelectorAll('.radius-btn').forEach(btn => {
+                btn.className = "radius-btn py-2 text-xs font-bold rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-violet-500/50 transition duration-200";
+            });
+            
+            const activeBtn = document.getElementById(`rad-${radiusMeters}`);
+            if (activeBtn) {
+                activeBtn.className = "radius-btn py-2 text-xs font-bold rounded-xl bg-violet-950/40 border border-violet-800/60 text-violet-300 transition duration-200";
+            }
+        }
+
         // Navigation Controllers
         function selectMood(moodKey) {
-            // Clone seed data to prevent mutating the original templates on subsequent selections
             activeTarget = JSON.parse(JSON.stringify(HYDERABAD_SEEKER_DATA[moodKey]));
             localAdapterApplied = false;
             window.simulatedAngle = null; // Reset simulator approach vector
@@ -384,10 +396,172 @@
             document.getElementById('page-mood').classList.add('hidden');
             document.getElementById('page-radar').classList.remove('hidden');
 
-            // Force map resize and center IMMEDIATELY on the target location (instead of a hardcoded starting center)
+            // Force map resize and center IMMEDIATELY on target
             setTimeout(() => {
                 initializeMapCanvas(activeTarget.lat, activeTarget.lon);
                 drawInitialMysteryBeacon();
+            }, 100);
+        }
+
+        // ================= STREAMING_CHUNK: Integrating Gemini API with Google Search grounding... =================
+        // Fetch Curated Dynamic Spot via Gemini 3.1 Flash with Search Grounding
+        async function fetchAICuratedTarget(lat, lon, userMood, radius) {
+            const apiKey = ""; // Left empty as Canvas runtime injects credentials automatically
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            
+            const systemPrompt = `You are Seeker AI, a premium hyper-local concierge that recommends absolute top-tier, highly atmospheric, 5-star cafes, restaurants, gardens, or viewpoints matching the user's specific heart's desire. You generate accurate coordinates near their starting vector.`;
+            
+            const userPrompt = `
+                The user wants a dynamic local destination that perfectly matches this mood/journal entry: "${userMood}".
+                The user's starting location coordinates are: Latitude: ${lat}, Longitude: ${lon}.
+                You MUST identify a real-world venue, café, or historical monument matching this vibe.
+                Calculate or look up the highly accurate latitude and longitude coordinate vectors of this venue. The venue coordinate MUST be realistically within ${radius} meters of ${lat}, ${lon} (if no real venues are found within that exact range in their actual city, find the closest possible venue within that city and scale its coordinates to be roughly ${radius * 0.8}m away so they can walk to it).
+                
+                You MUST return a JSON object with:
+                - title: Name of the curated hidden spot.
+                - type: Vibe theme category description (e.g. "Colonial Green Oasis Café").
+                - clue: A beautifully evocative, poetic, cryptic clue (riddle) describing the venue's sights, scents, or architectures, without directly naming the place.
+                - lat: Real/approximate Latitude coordinate (number).
+                - lon: Real/approximate Longitude coordinate (number).
+                - address: Neighborhood or stylized address in the user's city.
+                - lore: Intriguing historical back-story, sensory atmosphere description, or secret lore.
+                - menu: Highly specific, premium curated menu item or experience recommendation.
+            `;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                tools: [{ "google_search": {} }], // Grounding with Google Search to fetch real live cafes & venues in their city!
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING" },
+                            type: { type: "STRING" },
+                            clue: { type: "STRING" },
+                            lat: { type: "NUMBER" },
+                            lon: { type: "NUMBER" },
+                            address: { type: "STRING" },
+                            lore: { type: "STRING" },
+                            menu: { type: "STRING" }
+                        },
+                        required: ["title", "type", "clue", "lat", "lon", "address", "lore", "menu"]
+                    }
+                }
+            };
+
+            // Implement exponential backoff for premium API robustness
+            let retryDelay = 1000;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) throw new Error(`HTTP network error! Status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (jsonText) {
+                        return JSON.parse(jsonText);
+                    }
+                } catch (err) {
+                    if (i === 2) throw err; // rethrow on last attempt
+                    await new Promise(res => setTimeout(res, retryDelay));
+                    retryDelay *= 2;
+                }
+            }
+        }
+
+        // Local Resilient Fallback Algorithm (Ensures zero failures if network/API drops)
+        function fallbackCuratedSpot(moodText) {
+            const query = (moodText || "").toLowerCase();
+            if (query.includes("coffee") || query.includes("caffeine") || query.includes("tea") || query.includes("garden") || query.includes("sip")) {
+                return HYDERABAD_SEEKER_DATA.caffeine;
+            } else if (query.includes("quiet") || query.includes("romantic") || query.includes("date") || query.includes("peaceful") || query.includes("calm")) {
+                return HYDERABAD_SEEKER_DATA.romantic;
+            } else if (query.includes("historic") || query.includes("monument") || query.includes("adventure") || query.includes("climb")) {
+                return HYDERABAD_SEEKER_DATA.adventure;
+            } else {
+                return HYDERABAD_SEEKER_DATA.midnight; // fallback to energetic street eats
+            }
+        }
+
+        // Main Controller to generate the dynamic hunt
+        async function generateDynamicSensoryMission() {
+            const moodInput = document.getElementById('user-mood-input').value.trim();
+            if (!moodInput) {
+                alert("Please share a brief reflection of your day or heart's desire to trigger curation!");
+                return;
+            }
+
+            // Show AI overlay
+            const loader = document.getElementById('ai-curating-loader');
+            loader.classList.remove('hidden');
+
+            // Set up starting coordinates (Default to Hyderabad core coordinates)
+            let startLat = 17.4325;
+            let startLon = 78.3888;
+
+            // Attempt fast GPS handshake to contextualize target near user's actual location
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: false,
+                        timeout: 3500,
+                        maximumAge: 120000
+                    });
+                });
+                startLat = position.coords.latitude;
+                startLon = position.coords.longitude;
+            } catch (gpsError) {
+                console.debug("Quick GPS lock timed out or denied. Defaulting starting matrix coordinates near Hyderabad center.");
+            }
+
+            try {
+                // Call Gemini Live with Google Search grounding
+                const curatedTarget = await fetchAICuratedTarget(startLat, startLon, moodInput, selectedRadius);
+                activeTarget = curatedTarget;
+                localAdapterApplied = true; // Coordinates already calculated dynamically matching starting location!
+            } catch (apiError) {
+                console.error("AI Curation error, falling back to local resilient matrices:", apiError);
+                // Resilient local matching
+                const backupPreset = fallbackCuratedSpot(moodInput);
+                activeTarget = JSON.parse(JSON.stringify(backupPreset));
+                localAdapterApplied = false; // Trigger standard offsets if outside default city
+            } finally {
+                // Hide loader
+                loader.classList.add('hidden');
+            }
+
+            window.simulatedAngle = null; // Reset simulator approach vector
+
+            // Set Clue Riddle & reset display outputs
+            document.getElementById('clue-text').innerText = `"${activeTarget.clue}"`;
+            document.getElementById('live-distance').innerText = "--";
+            document.getElementById('proximity-indicator').innerText = "RADAR CALIBRATING";
+            document.getElementById('proximity-indicator').className = "text-[10px] font-bold text-slate-400 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-full mx-auto mt-1";
+            document.getElementById('map-telemetry').innerText = "MAP HANDSHAKE...";
+
+            // Transition pages
+            document.getElementById('page-mood').classList.add('hidden');
+            document.getElementById('page-radar').classList.remove('hidden');
+
+            // Render interactive tracking map
+            setTimeout(() => {
+                initializeMapCanvas(activeTarget.lat, activeTarget.lon);
+                drawInitialMysteryBeacon();
+                // If live GPS coordinates were retrieved, automatically run first distance mapping
+                if (startLat !== 17.4325 || startLon !== 78.3888) {
+                    const realDist = calculateHaversineDistance(startLat, startLon, activeTarget.lat, activeTarget.lon);
+                    updateRadarDisplay(realDist, 5);
+                    drawMapTelemetry(startLat, startLon);
+                }
             }, 100);
         }
 
