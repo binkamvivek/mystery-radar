@@ -18,6 +18,11 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet.js Mapping Engine assets -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <style>
         /* Smooth state transitions */
         .page-fade {
@@ -53,15 +58,25 @@
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
+        /* Style adjustments for custom Leaflet dark map elements */
+        .leaflet-container {
+            background: #090d16 !important;
+        }
+        /* Clear default white backgrounds of Leaflet custom divIcons */
+        .custom-user-marker, .custom-target-marker {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col justify-between items-center p-4 md:p-8 selection:bg-violet-500 selection:text-white">
 
-    <!-- Top Branding / Ambient Header -->
+    <!-- Top Ambient Header -->
     <header class="w-full max-w-md text-center py-4 mb-2">
         <div class="inline-flex items-center gap-2 bg-slate-900/80 border border-slate-800 px-4 py-1.5 rounded-full backdrop-blur">
             <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-            <span class="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400">SEEKER ENGINE V1.2</span>
+            <span class="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400">SEEKER ENGINE V2.0</span>
         </div>
     </header>
 
@@ -130,49 +145,56 @@
         </div>
 
         <!-- ================= PAGE 2: THE HUNTER RADAR ================= -->
-        <div id="page-radar" class="page-fade hidden space-y-6 flex-grow flex flex-col justify-between">
+        <div id="page-radar" class="page-fade hidden space-y-4 flex-grow flex flex-col justify-between">
             <!-- Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <button onclick="goBackToMoods()" class="text-sm text-slate-400 hover:text-white flex items-center gap-1 transition">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <button onclick="goBackToMoods()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition">
                     ← Change Vibe
                 </button>
-                <span class="text-xs font-bold text-violet-400 tracking-wider uppercase px-2.5 py-1 bg-violet-950/40 border border-violet-800/30 rounded-md">LIVE RADAR</span>
+                <span class="text-[10px] font-bold text-violet-400 tracking-wider uppercase px-2.5 py-1 bg-violet-950/40 border border-violet-800/30 rounded-md">LIVE COMPASS & MAP</span>
             </div>
 
             <!-- Clue Riddle -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1.5 h-full bg-violet-500"></div>
-                <h4 class="text-xs uppercase font-extrabold tracking-wider text-violet-400 mb-2">Cryptic Compass Clue:</h4>
-                <p id="clue-text" class="text-slate-200 text-[15px] leading-relaxed italic">
-                    "Find the white-walled sanctuary perched over a secret, peaceful lake, where the breeze carries whispers of European coasts."
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-violet-500"></div>
+                <h4 class="text-[10px] uppercase font-extrabold tracking-wider text-violet-400 mb-1">Cryptic Compass Clue:</h4>
+                <p id="clue-text" class="text-slate-200 text-xs leading-relaxed italic">
+                    "Find the white-walled sanctuary perched over a secret, peaceful lake..."
                 </p>
             </div>
 
-            <!-- Dynamic Radar Tracker Visual -->
-            <div class="flex flex-col items-center justify-center py-6 relative">
-                <!-- Inner Core -->
-                <div class="w-40 h-40 rounded-full border border-slate-800 flex flex-col items-center justify-center relative bg-slate-900/20">
-                    <!-- Scanning Ring -->
-                    <div class="absolute inset-0 rounded-full border-2 border-violet-500/20 radar-pulse"></div>
-                    <div class="absolute inset-4 rounded-full border border-dashed border-violet-500/10"></div>
-                    
-                    <!-- Distance Readout -->
-                    <span class="text-xs font-semibold uppercase text-slate-500 tracking-widest">DISTANCE</span>
-                    <span id="live-distance" class="text-4xl font-extrabold text-white tracking-tight my-1">--m</span>
-                    <span id="proximity-indicator" class="text-[10px] font-bold text-violet-400 px-2 py-0.5 bg-violet-950/60 border border-violet-800/50 rounded-full">CONNECTING...</span>
+            <!-- Interactive Map Panel -->
+            <div class="w-full h-44 rounded-xl border border-slate-800 overflow-hidden relative" style="z-index: 10;">
+                <div id="map" class="w-full h-full"></div>
+                <!-- Mini Compass Overlay -->
+                <div class="absolute bottom-2 right-2 bg-[#0b0f19]/90 border border-slate-800 px-2 py-1 rounded text-[9px] font-mono tracking-wider flex items-center gap-1.5 shadow-lg z-[400]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="map-telemetry">HANDSHAKE OFFLINE</span>
+                </div>
+            </div>
+
+            <!-- Distance Metrics Panel -->
+            <div class="grid grid-cols-2 gap-3 bg-slate-900/40 border border-slate-800/60 p-3 rounded-xl">
+                <div class="text-center border-r border-slate-800/80 flex flex-col justify-center">
+                    <span class="text-[9px] font-semibold uppercase text-slate-500 tracking-widest">DISTANCE</span>
+                    <span id="live-distance" class="text-2xl font-extrabold text-white tracking-tight my-0.5">--m</span>
+                </div>
+                <div class="text-center flex flex-col justify-center">
+                    <span class="text-[9px] font-semibold uppercase text-slate-500 tracking-widest">PROXIMITY</span>
+                    <span id="proximity-indicator" class="inline-block text-[9px] font-bold text-violet-400 px-2 py-0.5 bg-violet-950/60 border border-violet-800/50 rounded-full mx-auto mt-1">CONNECTING...</span>
                 </div>
             </div>
 
             <!-- Lock / Navigation Info Footer -->
-            <div class="space-y-4">
-                <div class="flex items-center gap-3 bg-slate-900/40 border border-slate-800/60 p-3.5 rounded-xl text-xs">
-                    <span class="text-xl">🛰️</span>
+            <div class="space-y-3">
+                <div class="flex items-start gap-2 bg-slate-900/40 border border-slate-800/60 p-3 rounded-xl text-[10px]">
+                    <span class="text-sm">🛰️</span>
                     <p id="radar-status" class="text-slate-400 leading-normal">
-                        Initializing high-precision satellite telemetry. Please allow location access to start the tracking engine.
+                        Initializing high-precision satellite telemetry. Please allow location access to synchronize map vectors.
                     </p>
                 </div>
 
-                <button id="initialize-btn" onclick="requestSatelliteLock()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg hover:shadow-violet-500/10 transform active:scale-[0.98]">
+                <button id="initialize-btn" onclick="requestSatelliteLock()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl text-xs transition duration-300 shadow-lg hover:shadow-violet-500/10 transform active:scale-[0.98]">
                     INITIALIZE TRACKING HANDSHAKE
                 </button>
             </div>
@@ -303,7 +325,13 @@
         let isSimulating = false;
         let simulatedDistance = 0;
 
-        // Sound/Haptic feedback simulation (using simple browser audio context for 5-star experience)
+        // Leaflet Map State Variables
+        let map = null;
+        let userMarker = null;
+        let targetMarker = null;
+        let routePolyline = null;
+
+        // Sound/Haptic feedback simulation
         function playSuccessChime() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -345,11 +373,20 @@
             // Reset state displays
             document.getElementById('live-distance').innerText = "--";
             document.getElementById('proximity-indicator').innerText = "RADAR IDLE";
-            document.getElementById('proximity-indicator').className = "text-[10px] font-bold text-slate-400 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-full";
-            
+            document.getElementById('proximity-indicator').className = "text-[10px] font-bold text-slate-400 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-full mx-auto mt-1";
+            document.getElementById('map-telemetry').innerText = "RADAR OFFLINE";
+
             // Switch Pages
             document.getElementById('page-mood').classList.add('hidden');
             document.getElementById('page-radar').classList.remove('hidden');
+
+            // Force map resize check to render correctly when DOM displays it
+            setTimeout(() => {
+                initializeMapCanvas(17.4483, 78.3915); // Default start map coordinates (Hyderabad Center)
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 100);
         }
 
         function goBackToMoods() {
@@ -362,6 +399,104 @@
             stopTracking();
             document.getElementById('page-reveal').classList.add('hidden');
             document.getElementById('page-mood').classList.remove('hidden');
+        }
+
+        // Initialize Map
+        function initializeMapCanvas(startLat, startLon) {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+
+            if (map) {
+                map.remove();
+                map = null;
+                userMarker = null;
+                targetMarker = null;
+                routePolyline = null;
+            }
+
+            // Create map with hidden controls for clean custom tactical aesthetic
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false,
+                dragging: true,
+                scrollWheelZoom: true,
+                doubleClickZoom: true,
+                boxZoom: false
+            }).setView([startLat, startLon], 13);
+
+            // Sleek glowing dark map theme
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20
+            }).addTo(map);
+        }
+
+        // Update Map Assets (User Pointer, Destination Mystery Beacon, Connection Dashed Path)
+        function drawMapTelemetry(userLat, userLon) {
+            if (!map || !activeTarget) return;
+
+            // Enforce size recalibration to prevent Leaflet's hidden-parent gray screen rendering bug
+            map.invalidateSize();
+
+            const userCoords = [userLat, userLon];
+            const targetCoords = [activeTarget.lat, activeTarget.lon];
+
+            // Custom glowing pulsing HTML marker for User
+            const userIcon = L.divIcon({
+                className: 'custom-user-marker',
+                html: `<div class="relative w-4 h-4 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full bg-violet-500 opacity-60 animate-ping"></div>
+                    <div class="relative w-2.5 h-2.5 rounded-full bg-violet-400 border border-white shadow-lg"></div>
+                </div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            // Custom Question Mark Beacon for Mystery Target Destination
+            const targetIcon = L.divIcon({
+                className: 'custom-target-marker',
+                html: `<div class="w-6 h-6 rounded-full bg-emerald-500/10 border-2 border-emerald-400 flex items-center justify-center text-[11px] font-extrabold text-emerald-300 shadow-md shadow-emerald-500/20 animate-pulse">?</div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+
+            // Update user position
+            if (userMarker) {
+                userMarker.setLatLng(userCoords);
+            } else {
+                userMarker = L.marker(userCoords, { icon: userIcon }).addTo(map);
+            }
+
+            // Update destination target
+            if (targetMarker) {
+                targetMarker.setLatLng(targetCoords);
+            } else {
+                targetMarker = L.marker(targetCoords, { icon: targetIcon }).addTo(map);
+            }
+
+            // Update target trail dashed vector polyline
+            if (routePolyline) {
+                routePolyline.setLatLngs([userCoords, targetCoords]);
+            } else {
+                routePolyline = L.polyline([userCoords, targetCoords], {
+                    color: '#8b5cf6',
+                    weight: 2.5,
+                    opacity: 0.75,
+                    dashArray: '6, 8',
+                    lineCap: 'round'
+                }).addTo(map);
+            }
+
+            // Auto fit bound parameters to display both beautifully
+            const trackingBounds = L.latLngBounds([userCoords, targetCoords]);
+            map.fitBounds(trackingBounds, {
+                padding: [40, 40],
+                maxZoom: 16,
+                animate: true,
+                duration: 0.8
+            });
+
+            // Set dynamic coordinate HUD text
+            document.getElementById('map-telemetry').innerText = `${userLat.toFixed(4)}, ${userLon.toFixed(4)}`;
         }
 
         // Math: Haversine Algorithm (True Earth Sphere Distance)
@@ -386,7 +521,7 @@
             document.getElementById('radar-status').innerHTML = "Pinging GPS satellites... <br>Synchronizing ephemeris telemetry.";
             document.getElementById('initialize-btn').disabled = true;
             document.getElementById('initialize-btn').innerText = "LOCKING ON TARGET...";
-            document.getElementById('initialize-btn').className = "w-full bg-slate-900 border border-slate-800 text-slate-500 font-bold py-4 px-6 rounded-2xl cursor-not-allowed";
+            document.getElementById('initialize-btn').className = "w-full bg-slate-900 border border-slate-800 text-slate-500 font-bold py-3.5 px-6 rounded-xl cursor-not-allowed text-xs";
 
             // Start High-Accuracy Dynamic Watching
             isWatching = true;
@@ -399,14 +534,16 @@
                     const precision = position.coords.accuracy;
 
                     const distance = calculateHaversineDistance(userLat, userLon, activeTarget.lat, activeTarget.lon);
+                    
                     updateRadarDisplay(distance, precision);
+                    drawMapTelemetry(userLat, userLon);
                 },
                 (error) => {
                     document.getElementById('radar-status').innerHTML = "ACCESS REJECTED.<br>Please toggle your smartphone's 'Location Services' ON to test.";
                     document.getElementById('radar-status').style.color = "#ef4444";
                     document.getElementById('initialize-btn').disabled = false;
                     document.getElementById('initialize-btn').innerText = "INITIALIZE TRACKING HANDSHAKE";
-                    document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg transform active:scale-[0.98]";
+                    document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl text-xs transition duration-300 shadow-lg transform active:scale-[0.98]";
                 },
                 {
                     enableHighAccuracy: true,
@@ -435,19 +572,18 @@
 
             // Dynamic Proximity States (Hot-Cold feedback mechanics)
             if (distanceMeters <= 30) {
-                // 🏆 TRICK UNLOCKED!
                 proximity.innerText = "ARRIVED!";
-                proximity.className = "text-[10px] font-bold text-emerald-400 px-3 py-0.5 bg-emerald-950/60 border border-emerald-500/50 rounded-full animate-pulse";
+                proximity.className = "inline-block text-[9px] font-bold text-emerald-400 px-3 py-0.5 bg-emerald-950/60 border border-emerald-500/50 rounded-full animate-pulse mx-auto mt-1";
                 triggerReveal();
             } else if (distanceMeters < 150) {
                 proximity.innerText = "SCORCHING HOT!";
-                proximity.className = "text-[10px] font-bold text-orange-400 px-3 py-0.5 bg-orange-950/60 border border-orange-500/50 rounded-full animate-bounce";
+                proximity.className = "inline-block text-[9px] font-bold text-orange-400 px-3 py-0.5 bg-orange-950/60 border border-orange-500/50 rounded-full animate-bounce mx-auto mt-1";
             } else if (distanceMeters < 1000) {
                 proximity.innerText = "WARM VECTOR";
-                proximity.className = "text-[10px] font-bold text-yellow-400 px-2 py-0.5 bg-yellow-950/60 border border-yellow-500/50 rounded-full";
+                proximity.className = "inline-block text-[9px] font-bold text-yellow-400 px-2 py-0.5 bg-yellow-950/60 border border-yellow-500/50 rounded-full mx-auto mt-1";
             } else {
                 proximity.innerText = "COLD ORBIT";
-                proximity.className = "text-[10px] font-bold text-blue-400 px-2 py-0.5 bg-blue-950/60 border border-blue-500/50 rounded-full";
+                proximity.className = "inline-block text-[9px] font-bold text-blue-400 px-2 py-0.5 bg-blue-950/60 border border-blue-500/50 rounded-full mx-auto mt-1";
             }
         }
 
@@ -476,7 +612,7 @@
             // Reset Initialize Button
             document.getElementById('initialize-btn').disabled = false;
             document.getElementById('initialize-btn').innerText = "INITIALIZE TRACKING HANDSHAKE";
-            document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg transform active:scale-[0.98]";
+            document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-6 rounded-xl text-xs transition duration-300 shadow-lg transform active:scale-[0.98]";
         }
 
         // ================= SANDBOX DEV SIMULATOR HANDLER =================
@@ -493,13 +629,23 @@
                 document.getElementById('page-radar').classList.remove('hidden');
             }
 
-            // Fake active radar beam run state
-            const pulseNode = document.querySelector('.radar-pulse');
-            if (pulseNode) {
-                pulseNode.style.animationPlayState = 'running';
-            }
+            // Calculate mock user coordinates that yield the selected distance
+            // We shift User coords from the target destination in a premium trajectory
+            const targetLat = activeTarget.lat;
+            const targetLon = activeTarget.lon;
 
+            // 1 degree latitude = ~111,000 meters. Let's shift user position accordingly
+            const latOffset = (targetMeters / 111000) / Math.sqrt(2);
+            const lonOffset = (targetMeters / (111000 * Math.cos(targetLat * Math.PI / 180))) / Math.sqrt(2);
+
+            const mockUserLat = targetLat + latOffset;
+            const mockUserLon = targetLon + lonOffset;
+
+            // Update radar displays
             updateRadarDisplay(targetMeters, 2);
+
+            // Update Map Graphics
+            drawMapTelemetry(mockUserLat, mockUserLon);
         }
     </script>
 </body>
