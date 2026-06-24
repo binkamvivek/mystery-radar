@@ -1,50 +1,506 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Mystery Radar</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet/dist/leaflet.css"
-    />
+    <title>Seeker — Discover the Hidden</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Smooth state transitions */
+        .page-fade {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom Glowing effects */
+        .glow-violet {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+        }
+        /* Pulsing ring for Radar */
+        .radar-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+        /* Shimmer effect for premium unlock card */
+        .shimmer-bg {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
 </head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col justify-between items-center p-4 md:p-8 selection:bg-violet-500 selection:text-white">
 
-<body>
+    <!-- Top Branding / Ambient Header -->
+    <header class="w-full max-w-md text-center py-4 mb-2">
+        <div class="inline-flex items-center gap-2 bg-slate-900/80 border border-slate-800 px-4 py-1.5 rounded-full backdrop-blur">
+            <span class="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
+            <span class="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400">SEEKER ENGINE V1.2</span>
+        </div>
+    </header>
 
-<div class="container">
+    <!-- Main Game Container -->
+    <main class="w-full max-w-md bg-[#131926]/90 border border-slate-800/80 rounded-[32px] p-6 md:p-8 flex-grow flex flex-col justify-between relative overflow-hidden glow-violet backdrop-blur-md">
+        
+        <!-- ================= PAGE 1: MOOD SELECTION ================= -->
+        <div id="page-mood" class="page-fade space-y-6 flex-grow flex flex-col justify-between">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 via-indigo-200 to-emerald-400 bg-clip-text text-transparent">
+                    How is your heart today?
+                </h1>
+                <p class="text-slate-400 mt-2 text-sm">Select your vibe. We'll match you to a premium, curated 5-star experience hidden nearby. You have to hunt to unlock the name.</p>
+            </div>
 
-    <h1>MYSTERY RADAR</h1>
+            <!-- Mood Buttons Grid -->
+            <div class="grid grid-cols-1 gap-3 my-6">
+                <button onclick="selectMood('romantic')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl group-hover:scale-110 transition duration-300">🍷</span>
+                        <div>
+                            <h3 class="font-bold text-slate-200">Aesthetic & Quiet</h3>
+                            <p class="text-xs text-slate-400">Picturesque views, low lights, intimate vibes</p>
+                        </div>
+                    </div>
+                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
+                </button>
 
-    <p class="subtitle">
-        Discover places by unlocking them.
-    </p>
+                <button onclick="selectMood('caffeine')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl group-hover:scale-110 transition duration-300">☕</span>
+                        <div>
+                            <h3 class="font-bold text-slate-200">Espresso & Sanctuary</h3>
+                            <p class="text-xs text-slate-400">Artisanal roasts, greenery, cozy outdoor nooks</p>
+                        </div>
+                    </div>
+                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
+                </button>
 
-    <input
-        id="themeInput"
-        placeholder="Hidden cafes and street art..."
-    >
+                <button onclick="selectMood('adventure')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-500/50 rounded-2xl transition duration-300 text-left group">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl group-hover:scale-110 transition duration-300">🏰</span>
+                        <div>
+                            <h3 class="font-bold text-slate-200">Historic Majesty</h3>
+                            <p class="text-xs text-slate-400">Ancient architectures, heights, echo chambers</p>
+                        </div>
+                    </div>
+                    <span class="text-emerald-400 group-hover:translate-x-1 transition duration-300">→</span>
+                </button>
 
-    <button onclick="generateMission()">
-        Generate Mission
-    </button>
+                <button onclick="selectMood('midnight')" class="flex items-center justify-between p-4 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-violet-500/50 rounded-2xl transition duration-300 text-left group">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl group-hover:scale-110 transition duration-300">🌙</span>
+                        <div>
+                            <h3 class="font-bold text-slate-200">Midnight Street Energy</h3>
+                            <p class="text-xs text-slate-400">Late night crowds, buzzing food courts, street eats</p>
+                        </div>
+                    </div>
+                    <span class="text-violet-400 group-hover:translate-x-1 transition duration-300">→</span>
+                </button>
+            </div>
 
-    <div id="loading"></div>
+            <div class="text-center text-[10px] text-slate-500 uppercase tracking-widest">
+                Curating top-tier 5★ spots in Hyderabad
+            </div>
+        </div>
 
-    <div id="missionBox"></div>
+        <!-- ================= PAGE 2: THE HUNTER RADAR ================= -->
+        <div id="page-radar" class="page-fade hidden space-y-6 flex-grow flex flex-col justify-between">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <button onclick="goBackToMoods()" class="text-sm text-slate-400 hover:text-white flex items-center gap-1 transition">
+                    ← Change Vibe
+                </button>
+                <span class="text-xs font-bold text-violet-400 tracking-wider uppercase px-2.5 py-1 bg-violet-950/40 border border-violet-800/30 rounded-md">LIVE RADAR</span>
+            </div>
 
-    <div id="map"></div>
+            <!-- Clue Riddle -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-violet-500"></div>
+                <h4 class="text-xs uppercase font-extrabold tracking-wider text-violet-400 mb-2">Cryptic Compass Clue:</h4>
+                <p id="clue-text" class="text-slate-200 text-[15px] leading-relaxed italic">
+                    "Find the white-walled sanctuary perched over a secret, peaceful lake, where the breeze carries whispers of European coasts."
+                </p>
+            </div>
 
-</div>
+            <!-- Dynamic Radar Tracker Visual -->
+            <div class="flex flex-col items-center justify-center py-6 relative">
+                <!-- Inner Core -->
+                <div class="w-40 h-40 rounded-full border border-slate-800 flex flex-col items-center justify-center relative bg-slate-900/20">
+                    <!-- Scanning Ring -->
+                    <div class="absolute inset-0 rounded-full border-2 border-violet-500/20 radar-pulse"></div>
+                    <div class="absolute inset-4 rounded-full border border-dashed border-violet-500/10"></div>
+                    
+                    <!-- Distance Readout -->
+                    <span class="text-xs font-semibold uppercase text-slate-500 tracking-widest">DISTANCE</span>
+                    <span id="live-distance" class="text-4xl font-extrabold text-white tracking-tight my-1">--m</span>
+                    <span id="proximity-indicator" class="text-[10px] font-bold text-violet-400 px-2 py-0.5 bg-violet-950/60 border border-violet-800/50 rounded-full">CONNECTING...</span>
+                </div>
+            </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="script.js"></script>
+            <!-- Lock / Navigation Info Footer -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 bg-slate-900/40 border border-slate-800/60 p-3.5 rounded-xl text-xs">
+                    <span class="text-xl">🛰️</span>
+                    <p id="radar-status" class="text-slate-400 leading-normal">
+                        Initializing high-precision satellite telemetry. Please allow location access to start the tracking engine.
+                    </p>
+                </div>
 
+                <button id="initialize-btn" onclick="requestSatelliteLock()" class="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg hover:shadow-violet-500/10 transform active:scale-[0.98]">
+                    INITIALIZE TRACKING HANDSHAKE
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 3: THE REVEAL (5-STAR SHOWCASE) ================= -->
+        <div id="page-reveal" class="page-fade hidden space-y-6 flex-grow flex flex-col justify-between">
+            
+            <!-- Confetti Header -->
+            <div class="text-center space-y-1">
+                <div class="inline-flex justify-center items-center w-12 h-12 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-2xl mb-2 animate-bounce">
+                    ✨
+                </div>
+                <h2 class="text-2xl font-extrabold text-emerald-400">UNBELIEVABLE RESOLUTION!</h2>
+                <p class="text-xs text-slate-400">You arrived perfectly at the secret coordinate perimeter.</p>
+            </div>
+
+            <!-- Curated 5-Star Card Reveal -->
+            <div class="bg-gradient-to-b from-slate-900 to-[#101622] border-2 border-emerald-500/30 rounded-2xl p-5 shadow-2xl relative overflow-hidden glow-emerald">
+                <!-- Stars -->
+                <div class="flex justify-center gap-1 mb-3 text-amber-400 text-lg">
+                    ⭐⭐⭐⭐⭐
+                </div>
+
+                <h3 id="revealed-title" class="text-xl font-bold text-center text-white uppercase tracking-wide">Roastery Coffee House</h3>
+                <p id="revealed-type" class="text-xs font-semibold text-center text-emerald-400 tracking-widest uppercase mb-4">Aesthetic Garden Cafe</p>
+                
+                <div class="space-y-3.5 text-sm border-t border-slate-800/80 pt-4 text-slate-300">
+                    <div class="flex items-start gap-2">
+                        <span class="text-base mt-0.5">📍</span>
+                        <p><strong class="text-white">Curated Spot:</strong> <span id="revealed-address">Banjara Hills, Rd 14, Hyderabad.</span></p>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="text-base mt-0.5">🌟</span>
+                        <p><strong class="text-white">The Secret Lore:</strong> <span id="revealed-lore">A gorgeous 5-star colonial heritage bungalow completely draped in sprawling green gardens. It serves some of India's finest single-origin pour-overs.</span></p>
+                    </div>
+                    <div class="flex items-start gap-2 bg-emerald-950/20 border border-emerald-500/10 p-3 rounded-xl">
+                        <span class="text-base mt-0.5">🍽️</span>
+                        <p><strong class="text-emerald-400">Exquisite Recommendation:</strong> <span id="revealed-menu" class="text-slate-200">The Nitro Cold Brew & their signature Cranberry Coffee along with fresh hand-rolled pasta.</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="space-y-3">
+                <button onclick="resetGame()" class="w-full bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 text-slate-200 font-bold py-3.5 rounded-xl text-sm transition">
+                    🧭 Hunt a Different Vibe
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= PREMIUM DEVELOPER SIMULATION PLAYGROUND ================= -->
+    <div class="w-full max-w-md mt-6 bg-[#111622] border border-slate-800 rounded-2xl p-4 text-xs space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span class="font-bold tracking-wider uppercase text-amber-500 flex items-center gap-1">
+                🛠️ Developer Sandbox Controls
+            </span>
+            <span class="text-[9px] px-1.5 py-0.5 bg-slate-800 rounded text-slate-400">Desk Testing Mode</span>
+        </div>
+        <p class="text-slate-400 leading-normal">
+            Instead of walking miles around Hyderabad, use this dashboard to test how the GPS algorithm handles the Hot/Cold system and triggers the 5-star reveal!
+        </p>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+            <button onclick="simulateWalk(1500)" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 p-2 rounded text-slate-300 font-semibold transition">
+                Simulate 1.5 KM away
+            </button>
+            <button onclick="simulateWalk(150)" class="bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 p-2 rounded text-slate-300 font-semibold transition">
+                Simulate 150 M away
+            </button>
+            <button onclick="simulateWalk(22)" class="bg-emerald-950/30 border border-emerald-800 hover:bg-emerald-900/30 p-2 rounded text-emerald-400 font-bold col-span-2 transition">
+                ⚡ Walk into Safe Zone (Simulate 22m - Unlock!)
+            </button>
+        </div>
+    </div>
+
+    <!-- Script Section -->
+    <script>
+        // ================= SEED DATA: 5-STAR HYDERABAD SPOTS =================
+        const HYDERABAD_SEEKER_DATA = {
+            romantic: {
+                title: "Olive Bistro & Bar",
+                type: "Mediterranean Sanctuary",
+                clue: "Find the white-walled sanctuary perched over a secret lake, where the breeze carries whispers of Mediterranean coasts and stone pathways.",
+                lat: 17.4325,
+                lon: 78.3888,
+                address: "Durgam Cheruvu, Jubilee Hills, Hyderabad",
+                lore: "A breathtaking cliffside restaurant designed like a white-and-blue Santorini villa. It overlooks the secret waters of Durgam Cheruvu Lake, offering unparalleled evening twilight vistas.",
+                menu: "Seared Jumbo Prawns, authentic wood-fired Pepperoni & Truffle Oil pizza, and their hand-spun classic Tiramisu."
+            },
+            caffeine: {
+                title: "Roastery Coffee House",
+                type: "Aesthetic Garden Roastery",
+                clue: "An elegant colonial bungalow draped in green leaves, where the rich aroma of fresh house-roasted beans drift over quiet gravel courtyards.",
+                lat: 17.4225,
+                lon: 78.4328,
+                address: "Banjara Hills, Road 14, Hyderabad",
+                lore: "An absolute institution for premium coffee lovers. Tucked away inside a massive vintage residential estate, it offers beautiful stone birdbaths, open sky seating, and a quiet retreat from the metropolis.",
+                menu: "Their famous signature Cranberry Coffee, fresh house Nitro Cold Brew, and artisanal Zucchini Fries."
+            },
+            adventure: {
+                title: "The Whispering Gallery",
+                type: "Acoustic Monument Wonder",
+                clue: "Scale the winding granite sentry path to find the ancient acoustic dome, where a single soft whisper at one wall travels instantly to the opposite arch.",
+                lat: 17.3824,
+                lon: 78.4011,
+                address: "Golconda Fort, Hyderabad",
+                lore: "A stunning marvel of medieval acoustic engineering. At the highest chambers of the fortress, whispers could communicate state secrets across hallways to warn the court of invaders.",
+                menu: "Pure exploration! Walk down to the ancient water systems, explore the iron gateways, and catch the sunset over Hyderabad's skyline."
+            },
+            midnight: {
+                title: "DLF Street Food Arcade",
+                type: "Gachibowli Midnight Boulevard",
+                clue: "Follow the neon signs of sizzling woks and boiling kettles that never rest, keeping the local techies awake with steam and spices.",
+                lat: 17.4478,
+                lon: 78.3752,
+                address: "Opposite DLF Cyber City, Gachibowli, Hyderabad",
+                lore: "The legendary, open-air midnight street culinary alley of Hyderabad. Gathering computer scientists, programmers, and travelers under glowing lights until the early morning hours.",
+                menu: "The legendary AM-PM Maggi, Butter-roasted Paneer Dosa, and thick hot cutting Chai."
+            }
+        };
+
+        // Active State Variables
+        let activeTarget = null;
+        let isWatching = false;
+        let watchId = null;
+        let isSimulating = false;
+        let simulatedDistance = 0;
+
+        // Sound/Haptic feedback simulation (using simple browser audio context for 5-star experience)
+        function playSuccessChime() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Note 1 (E5)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                gain1.gain.setValueAtTime(0.1, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                
+                // Note 2 (G5)
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.frequency.setValueAtTime(783.99, ctx.currentTime + 0.15);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                gain2.gain.setValueAtTime(0.1, ctx.currentTime + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+                osc1.start();
+                osc1.stop(ctx.currentTime + 0.4);
+                osc2.start(ctx.currentTime + 0.15);
+                osc2.stop(ctx.currentTime + 0.6);
+            } catch (e) {
+                // Audio context not allowed/supported
+            }
+        }
+
+        // Navigation Controllers
+        function selectMood(moodKey) {
+            activeTarget = HYDERABAD_SEEKER_DATA[moodKey];
+            
+            // Set Clue Riddle
+            document.getElementById('clue-text').innerText = `"${activeTarget.clue}"`;
+            
+            // Reset state displays
+            document.getElementById('live-distance').innerText = "--";
+            document.getElementById('proximity-indicator').innerText = "RADAR IDLE";
+            document.getElementById('proximity-indicator').className = "text-[10px] font-bold text-slate-400 px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-full";
+            
+            // Switch Pages
+            document.getElementById('page-mood').classList.add('hidden');
+            document.getElementById('page-radar').classList.remove('hidden');
+        }
+
+        function goBackToMoods() {
+            stopTracking();
+            document.getElementById('page-radar').classList.add('hidden');
+            document.getElementById('page-mood').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            stopTracking();
+            document.getElementById('page-reveal').classList.add('hidden');
+            document.getElementById('page-mood').classList.remove('hidden');
+        }
+
+        // Math: Haversine Algorithm (True Earth Sphere Distance)
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
+
+        // Live Geolocation Engine
+        function requestSatelliteLock() {
+            if (!navigator.geolocation) {
+                document.getElementById('radar-status').innerText = "SYSTEM CRITICAL: Hardware GPS device missing or blockaded by security sandboxing.";
+                return;
+            }
+
+            isSimulating = false;
+            document.getElementById('radar-status').innerHTML = "Pinging GPS satellites... <br>Synchronizing ephemeris telemetry.";
+            document.getElementById('initialize-btn').disabled = true;
+            document.getElementById('initialize-btn').innerText = "LOCKING ON TARGET...";
+            document.getElementById('initialize-btn').className = "w-full bg-slate-900 border border-slate-800 text-slate-500 font-bold py-4 px-6 rounded-2xl cursor-not-allowed";
+
+            // Start High-Accuracy Dynamic Watching
+            isWatching = true;
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    if (isSimulating) return; // Ignore live GPS if developer simulation is active
+
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    const precision = position.coords.accuracy;
+
+                    const distance = calculateHaversineDistance(userLat, userLon, activeTarget.lat, activeTarget.lon);
+                    updateRadarDisplay(distance, precision);
+                },
+                (error) => {
+                    document.getElementById('radar-status').innerHTML = "ACCESS REJECTED.<br>Please toggle your smartphone's 'Location Services' ON to test.";
+                    document.getElementById('radar-status').style.color = "#ef4444";
+                    document.getElementById('initialize-btn').disabled = false;
+                    document.getElementById('initialize-btn').innerText = "INITIALIZE TRACKING HANDSHAKE";
+                    document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg transform active:scale-[0.98]";
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000
+                }
+            );
+        }
+
+        // Live Display Updates
+        function updateRadarDisplay(distanceMeters, accuracyMeters = 5) {
+            const distanceText = document.getElementById('live-distance');
+            const proximity = document.getElementById('proximity-indicator');
+            const status = document.getElementById('radar-status');
+
+            // Format distance output beautifully
+            if (distanceMeters > 1000) {
+                distanceText.innerText = (distanceMeters / 1000).toFixed(2) + "km";
+            } else {
+                distanceText.innerText = Math.round(distanceMeters) + "m";
+            }
+
+            // Update sub-text with hardware parameters
+            status.innerHTML = `Connected to Satellite Constellation.<br>Real-time precision buffer: ±${Math.round(accuracyMeters)}m`;
+            status.style.color = "#94a3b8";
+
+            // Dynamic Proximity States (Hot-Cold feedback mechanics)
+            if (distanceMeters <= 30) {
+                // 🏆 TRICK UNLOCKED!
+                proximity.innerText = "ARRIVED!";
+                proximity.className = "text-[10px] font-bold text-emerald-400 px-3 py-0.5 bg-emerald-950/60 border border-emerald-500/50 rounded-full animate-pulse";
+                triggerReveal();
+            } else if (distanceMeters < 150) {
+                proximity.innerText = "SCORCHING HOT!";
+                proximity.className = "text-[10px] font-bold text-orange-400 px-3 py-0.5 bg-orange-950/60 border border-orange-500/50 rounded-full animate-bounce";
+            } else if (distanceMeters < 1000) {
+                proximity.innerText = "WARM VECTOR";
+                proximity.className = "text-[10px] font-bold text-yellow-400 px-2 py-0.5 bg-yellow-950/60 border border-yellow-500/50 rounded-full";
+            } else {
+                proximity.innerText = "COLD ORBIT";
+                proximity.className = "text-[10px] font-bold text-blue-400 px-2 py-0.5 bg-blue-950/60 border border-blue-500/50 rounded-full";
+            }
+        }
+
+        function triggerReveal() {
+            playSuccessChime();
+            stopTracking();
+
+            // Set Up Reveal Content
+            document.getElementById('revealed-title').innerText = activeTarget.title;
+            document.getElementById('revealed-type').innerText = activeTarget.type;
+            document.getElementById('revealed-address').innerText = activeTarget.address;
+            document.getElementById('revealed-lore').innerText = activeTarget.lore;
+            document.getElementById('revealed-menu').innerText = activeTarget.menu;
+
+            // Transition Screens
+            document.getElementById('page-radar').classList.add('hidden');
+            document.getElementById('page-reveal').classList.remove('hidden');
+        }
+
+        function stopTracking() {
+            if (isWatching && watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                isWatching = false;
+            }
+            // Reset Initialize Button
+            document.getElementById('initialize-btn').disabled = false;
+            document.getElementById('initialize-btn').innerText = "INITIALIZE TRACKING HANDSHAKE";
+            document.getElementById('initialize-btn').className = "w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-2xl transition duration-300 shadow-lg transform active:scale-[0.98]";
+        }
+
+        // ================= SANDBOX DEV SIMULATOR HANDLER =================
+        function simulateWalk(targetMeters) {
+            isSimulating = true;
+            
+            // If they click simulator, auto-initialize target if they haven't chosen one
+            if (!activeTarget) {
+                selectMood('caffeine');
+            } else {
+                // Ensure radar page is visible
+                document.getElementById('page-mood').classList.add('hidden');
+                document.getElementById('page-reveal').classList.add('hidden');
+                document.getElementById('page-radar').classList.remove('hidden');
+            }
+
+            // Fake active radar beam run state
+            const pulseNode = document.querySelector('.radar-pulse');
+            if (pulseNode) {
+                pulseNode.style.animationPlayState = 'running';
+            }
+
+            updateRadarDisplay(targetMeters, 2);
+        }
+    </script>
 </body>
-
 </html>
