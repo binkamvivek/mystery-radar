@@ -324,6 +324,7 @@
         let watchId = null;
         let isSimulating = false;
         let simulatedDistance = 0;
+        let localAdapterApplied = false; // Tracks if the coordinates have been dynamically adapted to local neighborhood
 
         // Leaflet Map State Variables
         let map = null;
@@ -365,7 +366,10 @@
 
         // Navigation Controllers
         function selectMood(moodKey) {
-            activeTarget = HYDERABAD_SEEKER_DATA[moodKey];
+            // Clone seed data to prevent mutating the original templates on subsequent selections
+            activeTarget = JSON.parse(JSON.stringify(HYDERABAD_SEEKER_DATA[moodKey]));
+            localAdapterApplied = false;
+            window.simulatedAngle = null; // Reset simulator approach vector
             
             // Set Clue Riddle
             document.getElementById('clue-text').innerText = `"${activeTarget.clue}"`;
@@ -380,13 +384,32 @@
             document.getElementById('page-mood').classList.add('hidden');
             document.getElementById('page-radar').classList.remove('hidden');
 
-            // Force map resize check to render correctly when DOM displays it
+            // Force map resize and center IMMEDIATELY on the target location (instead of a hardcoded starting center)
             setTimeout(() => {
-                initializeMapCanvas(17.4483, 78.3915); // Default start map coordinates (Hyderabad Center)
-                if (map) {
-                    map.invalidateSize();
-                }
+                initializeMapCanvas(activeTarget.lat, activeTarget.lon);
+                drawInitialMysteryBeacon();
             }, 100);
+        }
+
+        // Draw initial mystery beacon immediately on mood selection so map is not blank
+        function drawInitialMysteryBeacon() {
+            if (!map || !activeTarget) return;
+            map.invalidateSize();
+            
+            const targetCoords = [activeTarget.lat, activeTarget.lon];
+            const targetIcon = L.divIcon({
+                className: 'custom-target-marker',
+                html: `<div class="w-8 h-8 rounded-full bg-violet-500/10 border-2 border-violet-400 flex items-center justify-center text-[13px] font-extrabold text-violet-300 shadow-md shadow-violet-500/20 animate-pulse">?</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            if (targetMarker) {
+                targetMarker.setLatLng(targetCoords);
+            } else {
+                targetMarker = L.marker(targetCoords, { icon: targetIcon }).addTo(map);
+            }
+            map.setView(targetCoords, 15);
         }
 
         function goBackToMoods() {
@@ -533,6 +556,9 @@
                     const userLon = position.coords.longitude;
                     const precision = position.coords.accuracy;
 
+                    // Dynamically adapt coordinate vectors if user is playing from elsewhere
+                    adaptTargetToLocalNeighborhood(userLat, userLon);
+
                     const distance = calculateHaversineDistance(userLat, userLon, activeTarget.lat, activeTarget.lon);
                     
                     updateRadarDisplay(distance, precision);
@@ -551,6 +577,30 @@
                     timeout: 10000
                 }
             );
+        }
+
+        // Seamlessly adapt seed destination target to the explorer's real city/neighborhood
+        function adaptTargetToLocalNeighborhood(userLat, userLon) {
+            if (localAdapterApplied || !activeTarget) return;
+
+            const distToHyderabad = calculateHaversineDistance(userLat, userLon, activeTarget.lat, activeTarget.lon);
+            // If the user is more than 50km from Hyderabad, translate coordinates near their physical location!
+            if (distToHyderabad > 50000) {
+                // Generate a randomized walking offset vector (e.g., 300 to 600 meters away)
+                const randomAngle = Math.random() * 2 * Math.PI;
+                const randomDistance = 300 + Math.random() * 300; 
+
+                const latOffset = (randomDistance * Math.cos(randomAngle)) / 111000;
+                const lonOffset = (randomDistance * Math.sin(randomAngle)) / (111000 * Math.cos(userLat * Math.PI / 180));
+
+                activeTarget.lat = userLat + latOffset;
+                activeTarget.lon = userLon + lonOffset;
+                localAdapterApplied = true;
+
+                // Display local adaptive feedback inside status panel
+                const status = document.getElementById('radar-status');
+                status.innerHTML = `<span class="text-emerald-400 font-bold">🗺️ LOCAL COMPASS ADAPTER:</span> We detected you are exploring from outside Hyderabad. Shifting mystery secret spot to your local neighborhood (~${Math.round(randomDistance)}m away)! Go walk to unlock.`;
+            }
         }
 
         // Live Display Updates
@@ -629,14 +679,18 @@
                 document.getElementById('page-radar').classList.remove('hidden');
             }
 
-            // Calculate mock user coordinates that yield the selected distance
-            // We shift User coords from the target destination in a premium trajectory
+            // Select a randomized approaching angle if not yet chosen for this hunt
+            if (!window.simulatedAngle) {
+                window.simulatedAngle = Math.random() * 2 * Math.PI;
+            }
+            const angle = window.simulatedAngle;
+
             const targetLat = activeTarget.lat;
             const targetLon = activeTarget.lon;
 
-            // 1 degree latitude = ~111,000 meters. Let's shift user position accordingly
-            const latOffset = (targetMeters / 111000) / Math.sqrt(2);
-            const lonOffset = (targetMeters / (111000 * Math.cos(targetLat * Math.PI / 180))) / Math.sqrt(2);
+            // Shift user position using randomized angle
+            const latOffset = (targetMeters * Math.cos(angle)) / 111000;
+            const lonOffset = (targetMeters * Math.sin(angle)) / (111000 * Math.cos(targetLat * Math.PI / 180));
 
             const mockUserLat = targetLat + latOffset;
             const mockUserLon = targetLon + lonOffset;
